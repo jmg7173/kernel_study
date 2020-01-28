@@ -1,6 +1,8 @@
 # Kernel Study
 Kernel Study Feb. 2020. - Sogang Univ DCCLAB
 
+**Before you start your part, See [Contribute.md](./Contribute.md)**
+
 ## Chapter
 1. Bare Metal ([@JoeyValentine](https://github.com/JoeyValentine))
 
