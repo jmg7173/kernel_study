@@ -34,7 +34,7 @@ Kernel Study Feb. 2020. - Sogang Univ DCCLAB
 
 Main Book:  
 
-* Linux Kernel Development (2010), Robert Love)
+* Linux Kernel Development (2010), Robert Love
 
 Sub references:   
 
