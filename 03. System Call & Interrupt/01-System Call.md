@@ -23,7 +23,7 @@ Exception이나 Trap을 제외하고 User Application에서 정상적인 방법�
 모든 System Call의 return 값은 long이고, 정상 처리 시 주로 0을 return하나 에러 발생 시 음수 값을 리턴하고 이 값이 kernel에 등록되어있다면 perror 함수를 통해 무슨 에러인지 알 수 있다. 대표적인 return 값으로는 `-EINVAL`이 있다.
 
 ### Kernel code에 System Call 정의
-System Call 호출시 여러 인자를 넘길 수 있는데, 몇 개의 인자를 넘길 수 있는지는 Kernel 컴파일 시 정할 수 있다. 기본 설정은 최대 6개까지이고, 넘기는 갯수에 따라 정의하는 방법이 다르다. 다음은 System Call 정의의 일부이다. Kernel code에 다음과 같이 등록할 System Call에 대해 정의해야 한다.
+System Call 호출시 여러 인자를 넘길 수 있는데, 몇 개의 인자를 넘길 수 있는지는 Kernel 컴파일 시 정할 수 있다. 기본 설정은 최대 6개까지이고, 넘기는 갯수에 따라 정의하는 방법이 다르다. 다음은 System Call 정의의 일부이다. Kernel code에 다음과 같이 등록할 System Call에 대해 정의해야 한다. 이 과정은 trap을 통해 system call에 진입하기 위함이다.
 
 ```c
 SYSCALL_DEFINE0(syscall_name)
@@ -83,7 +83,12 @@ __SYSCALL(__NR_read, sys_Read)
 
 ## System Call Handler
 
-System Call은 assembly level에서 보면 `int 0x80`을 호출함으로써 이뤄진다. 이 명령을 수행하게 되면 interrupt vector의 `0x80`번지를 통해 system call handler로 진입하게 되고, `eax`에 저장된 값을 통해 호출하고자 하는 System Call 번호를 얻는다. 이 번호를 통해 System Call Table로 부터 호출하고자 하는 System Call을 부르게 된다.
+System Call은 assembly level에서 보면 `int 0x80`을 호출함으로써 이뤄진다. 이 명령을 수행하게 되면 interrupt vector의 `0x80`번지를 통해 system call handler로 진입하게 되고(assembly code에서는 system_call()함수로 정의되어있음), `eax`에 저장된 값을 통해 호출하고자 하는 System Call 번호를 얻는다.
+
+System Call Table는 배열로, 각 element에는 System Call들이 있다. System Call number를 통해 System Call Table에 저장되어있는 System Call에 접근할 수 있고, 소프트웨어 Interrupt를 통해 kernel로 trap해 kernel mode로 전환해 system call을 수행한다.
+
+이 내용을 정리하면 다음과 같다.  
+<!--![System Call Procedure](./fig/syscall.png)-->
 
 ## 주의사항
 User Program에서 System Call을 호출하는 경우 parameter를 통해 kernel을 속여 유해한 작업을 수행할 수 도있다. 그래서 System Call에서는 user가 넘기는 parameter들 중에서도 pointer에 대한 확인이 중요하다. Linux Kernel Development에서는 다음의 세가지에 대한 내용을 확인하는 것을 권장한다.
@@ -94,5 +99,15 @@ User Program에서 System Call을 호출하는 경우 parameter를 통해 kernel
 
 Kernel에서는 위의 방법을 통해 검사하거나, User 및 Kernel space 간 복사를 통해 사용할 수 있다.
 
-* User space로 write: `copy_to_user(dst(kernel mem), src(user mem), size)`
-* User space로부터 read: `copy_from_user(dst(user mem), src(kernel mem), size)`
+* User space로 write:  
+`copy_to_user(dst(kernel mem), src(user mem), size)`
+* User space로부터 read:  
+`copy_from_user(dst(user mem), src(kernel mem), size)`
+
+## System Call 호출
+System Call Table에 등록된 System Call들은 다음과 같이 호출할 수 있다.
+
+```c
+#include <linux/unistd.h>
+syscall(SYSCALL_NUMBER, args...);
+```
