@@ -4,6 +4,8 @@ OS에는 사용자가 사용할 수 있는 영역(User Space)와 커널에서 �
 
 User Process에서 System Call을 호출하면 Kernel space로 전환되게 된다. 이를 통해 Kernel 영역에서만 사용가능한 기능이나, Kernel 영역에서만 사용가능한 영역에 접근할 수 있다.
 
+일반적으로 접하는 `read`, `write`, `fork`등의 System Call은 주로 POSIX API와 같은 library function 내부에서 호출해 감쳐줘있는 것 처럼 보이지만, System Call을 직접 부르는 것도 가능하다.
+
 ## System Call의 역할
 
 Linux Kernel Development에서는 System Call의 역할을 다음과 같이 정의하고 있다.
@@ -23,7 +25,7 @@ Exception이나 Trap을 제외하고 User Application에서 정상적인 방법�
 모든 System Call의 return 값은 long이고, 정상 처리 시 주로 0을 return하나 에러 발생 시 음수 값을 리턴하고 이 값이 kernel에 등록되어있다면 perror 함수를 통해 무슨 에러인지 알 수 있다. 대표적인 return 값으로는 `-EINVAL`이 있다.
 
 ### Kernel code에 System Call 정의
-System Call 호출시 여러 인자를 넘길 수 있는데, 몇 개의 인자를 넘길 수 있는지는 Kernel 컴파일 시 정할 수 있다. 기본 설정은 최대 6개까지이고, 넘기는 갯수에 따라 정의하는 방법이 다르다. 다음은 System Call 정의의 일부이다. Kernel code에 다음과 같이 등록할 System Call에 대해 정의해야 한다. 이 과정은 trap을 통해 system call에 진입하기 위함이다.
+System Call 호출시 여러 인자를 넘길 수 있는데 기본 설정은 최대 6개까지이고, 넘기는 갯수에 따라 정의하는 방법이 다르다. 다음은 System Call 정의의 일부이다. Kernel code에 다음과 같이 등록할 System Call에 대해 정의해야 한다. 이 과정은 trap을 통해 system call에 진입하기 위함이다.
 
 ```c
 SYSCALL_DEFINE0(syscall_name)
@@ -63,16 +65,14 @@ ex) 0 common read sys_read
 
 #### System Call Header
 
-System Call Header에 등록할 때는 다음과 가튼 형식으로 등록하게 된다.
+System Call Header에 등록할 때는 다음과 같은 형식으로 등록하게 된다.
 ```c
 asmlinkage long sys_[system call name](...params...);
 
 ex) asmlinkage long sys_read(unsigned int fd, char __user *buf, size_t count);
 ```
 
-함수 선언에 있어서 특이하게 볼 수 있는 부분은 `asmlinkage`이다. Kernel 코드의 경우 최적화 옵션을 통해 함수의 인자들을 eax, ebx와 같은 register에 저장해 넘김으로써 더 좋은 성능을 얻을 수 있다. 그러나 assembly level에서 문제가 생기는 것을 방지하기 위해 assembly와 link를 할 수 있는 함수들에 `asmlinkage` 키워드를 줌으로써 stack을 이용해 전달한다.
-
-System Call의 return 값은 주로 eax에 저장된다. 만약 `asmlinkage` 키워드를 사용하지 않으면, system call 호출 시 eax에 인자를 저장하는 경우 System Call 동작이 완료된 후 eax에 저장되어있던 원래 값이 의도치않게 바뀔 수 있다. 그러므로 `asmlinkage` 키워드는 System Call 동작에 있어 매우 중요하다.
+함수 선언에 있어서 특이하게 볼 수 있는 부분은 `asmlinkage`이다. System Call은 Assembly level에서도 수행이 이루어지기 때문에 이 keyword가 필요하다. 컴파일 시 최적화 옵션을 통해 함수의 인자들을 eax, ebx와 같은 register에 저장해 넘김으로써 더 좋은 성능을 얻을 수 있다. 그러나 system call의 경우 register를 직접 사용하는 부분이 있어 assembly level에서 문제가 생길 수 있다. 이를 방지하기 위해 assembly와 link를 할 수 있는 함수들에 `asmlinkage` 키워드를 줌으로써 인자들을 register 대신 stack을 이용해 전달한다.
 
 ### `unistd.h`
 Header와 Table에 System Call을 등록하고 kernel을 컴파일하면 `include/uapi/asm-generic/unistd.h`에 등록이 되며, 시스템 콜 번호는 `__NR_` 접미어와 함께 macro로 정의되게 된다. 단, system call table에 등록한 system call 번호와 실제로 `unistd.h`에 등록된 번호에는 차이가 있으므로 직접 `unistd.h`에 등록하지 않는것을 권장한다. 다음은 `unistd.h`에 등록된 예시이다.
@@ -83,12 +83,30 @@ __SYSCALL(__NR_read, sys_Read)
 
 ## System Call Handler
 
-System Call은 assembly level에서 보면 `int 0x80`을 호출함으로써 이뤄진다. 이 명령을 수행하게 되면 interrupt vector의 `0x80`번지를 통해 system call handler로 진입하게 되고(assembly code에서는 system_call()함수로 정의되어있음), `eax`에 저장된 값을 통해 호출하고자 하는 System Call 번호를 얻는다.
+System Call은 assembly level에서 보면 `int 0x80`을 호출함으로써 이뤄진다. 이 주소는 CPU마다 다르나, intel 기준으로 `0x80`을 호출한다. 이 명령을 수행하게 되면 interrupt descriptor table의 `0x80`번지를 통해 system call handler로 진입하게 되고(assembly code에서는 system_call()함수로 정의되어있음), `rax`에 저장된 값을 통해 호출하고자 하는 System Call 번호를 얻는다.
 
-System Call Table는 배열로, 각 element에는 System Call들이 있다. System Call number를 통해 System Call Table에 저장되어있는 System Call에 접근할 수 있고, 소프트웨어 Interrupt를 통해 kernel로 trap해 kernel mode로 전환해 system call을 수행한다.
+System Call에 사용되는 각 레지스터 별 역할은 어셈블리 파일인 `arch/x86/entry/entry_64.S` 또는 `entry_32.S`에 기술되어 있으며 다음과 같다.
+![Register Used on System Call](./figs/register_syscall.png)
 
-이 내용을 정리하면 다음과 같다.  
-<!--![System Call Procedure](./fig/syscall.png)-->
+32bit의 경우에는 ebx, ecx, edx, esi, edi, ebp의 0번지를 argument로 사용하며, ebp는 user stack으로 사용된다.
+
+System Call Table은 배열로, 각 element에는 System Call들이 있다. System Call number를 통해 System Call Table에 저장되어있는 System Call에 접근할 수 있고, 소프트웨어 Interrupt를 통해 kernel로 trap해 kernel mode로 전환해 system call을 수행한다.
+
+현재 x86 architecture linux kernel(v5.0.0 이상)에서는 `kernel/cpu/common.c`에서 system call entry point를 초기화해준다. 여기에서는 cpu 모델에 맞춰 특정 레지스터에 system call entry를 저장하며, System Call Handling 시 interrupt를 이용하는 것은 같지만 방식은 위와 다소 다르며, 레지스터에 저장된 System Call Entry point에서 시작하게 된다.
+
+## System Call에 대한 전체적인 흐름
+
+System Call의 전체적인 흐름은 다음과 같다.
+ 
+![System Call Flow](./figs/syscall_flow.png)
+
+User Program이나 Application에서 Library를 통해 System Call을 호출하거나 직접 호출하는 경우 System Call Interface를 통해 kernel 영역에서만 접근할 수 있는 Virtual File System이나, Memory 관리, Process 관리에 대한 작업을 수행할 수 있고, Device Driver를 사용하거나 Memory 관리의 경우 HW를 제어할 수 있다. Device Driver를 사용하는 경우의 가장 대표적인 예로는 `read`나 `write`외에도 `ioctl`이 있으며, 특히 `ioctl`은 `read`나 `write`에서 수행할 수 없는 특별한 기능을 수행할 수도 있다.
+
+코드 레벨에서의 전체적인 흐름은 다음과 같다.
+
+![System Call Code Flow](./figs/syscall_code_flow.png)
+
+예전 kernel에서는 system call table에 접근을 assembly level에서 수행했으나, kernel 5.0 버전 이상에서는 `entry_64.S`에서 `common.c`의 `do_syscall_64` 함수를 호출하며, 이 내부에서 system call table에 접근한다.
 
 ## 주의사항
 User Program에서 System Call을 호출하는 경우 parameter를 통해 kernel을 속여 유해한 작업을 수행할 수 도있다. 그래서 System Call에서는 user가 넘기는 parameter들 중에서도 pointer에 대한 확인이 중요하다. Linux Kernel Development에서는 다음의 세가지에 대한 내용을 확인하는 것을 권장한다.
