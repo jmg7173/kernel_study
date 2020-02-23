@@ -148,7 +148,26 @@ Microsoft Windows, Sum Solaris: 커널에서 thread 관련 함수를 명시적�
 
 Linux: Thread는 process와 동일하게 생성, 실행, 종료되며, 커널에서 thread를 명시적으로 지원하지 않는다.
 
-Linux에서 thread는 process와 동일하게 취급되며, 단지 다른 process와 자원을 공유할 뿐이다. 따라서 생성 시 `fork()`에서 `clone()`이 수행되기 전에, `CLONE_FILES`(open files), `CLONE_FS`(file system information), `CLONE_SIGHAND`(signal handlers), `CLONE_VM`(address space) 등의 flag를 설정하여 전달한다. Parent process와 해당 자원들을 공유하는 child process가 곧 thread가 되며, 이때 parent process도 하나의 thread가 된다.
+Linux에서 thread는 **process와 동일**하게 취급되며, 단지 다른 process와 **자원을 공유할 뿐**이다. 따라서 생성 시 `fork()`에서 `clone()`이 수행되기 전에, `CLONE_FILES`(open files), `CLONE_FS`(file system information), `CLONE_SIGHAND`(signal handlers), `CLONE_VM`(address space) 등의 flag를 설정하여 전달한다. Parent process와 해당 자원들을 공유하는 child process가 곧 thread가 되며, 이때 parent process도 하나의 thread가 된다.
 
 Thread의 실행 역시 process와 마찬가지로, `fork()` 완료 후 `exec()` 호출을 통해 수행된다.
 
+## Process Termination
+**<Exit()>**
+
+Process 종료는 두가지 경우로 발생한다
+
+Self-induced: 자신의 process를 마치고 `exit()` system call을 호출한다.
+
+Involuntarily: 특정 신호를 받거나 exception, error 등이 발생하여 강제로 process가 종료된다.
+
+두 경우 모두 `do_exit()` 함수를 호출하여 다음을 수행한다.
+1. process의 모든 flag와 사용하던 자원을 해제한다.
+2. Parent process에 신호를 보내 종료함을 알린다. 만약 parent process가 먼저 종료되었다면  `forget_original_parent()`, `find_new_reaper()`를 호출하여 현재 thread 그룹에서 새로운 parent process를 찾는다. 적절한 parent process를 찾지 못하면 `init` process의 child process가 된다.
+3. 자신의 process 상태를 `EXIT_ZOMBIE`라는 종료 상태로 변경한다.
+4. `schedule()`을 호출하여 다른 process로 switch한다. (`Do_exit()`은 반환값이 없다.)
+- 실제 코드: [<kernel/exit.c>](https://github.com/torvalds/linux/blob/master/kernel/exit.c)
+
+**<Wait()>**
+
+Parent process는 child process가 끝나기를 기다렸다가 관련된 모든 객체를 해제해야한다. Child process의 상태가 종료 상태로 바뀌면 child process kernel stack, `thread_info` 구조체, `task_struct` 구조체를 해제하고 child process descriptor를 제거하여 완전히 종료시킨다.
