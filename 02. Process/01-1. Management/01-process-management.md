@@ -104,20 +104,20 @@ list_for_each(list, &current->children) {
 같은 parent process의 직속 children을 sibling이라고 하며, process descriptor들이 circular doubly linked list 구조이기 때문에 `next`, `prev`와 같은 포인터로 쉽게 접근할 수 있다. `next_task(task)`, `prev_task(task)`와 같은 매크로가 구현되어 있다.
 
 ## Process Creation
-Process의 생성과 실행은 fork()와 exec() system call로 수행된다. Fork()를 호출한 process는 parent process가 되고, 이로 인해 생성된 새로운 process는 child process가 된다. 그 뒤 exec()의 호출을 통해, 새로운 process의 이미지를 address space에 로드하여 child process를 수행한다.
+Process의 생성과 실행은 `fork()`와 `exec()` system call로 수행된다. `Fork()`를 호출한 process는 parent process가 되고, 이로 인해 생성된 새로운 process는 child process가 된다. 그 뒤 `exec()`의 호출을 통해, 새로운 process의 이미지를 address space에 로드하여 child process를 수행한다.
 <br></br>
 **<Fork()>**
 
 `fork() -> clone() -> do_fork() -> copy_process(), get_pid()`
-1. 우선 fork()에서 parent process와 child process 간에 공유할 자원들을 flag로 설정한다.
-2. 해당 flag들을 parameter로 포함시켜 clone()을 호출한다.
-3. Clone()에서는 do_fork()를 호출하고, 여기서 copy_process()를 호출하여 parent process address space의 복제를 통해 child process를 만든다.
-4. Copy_process()가 완료되면 get_pid()를 통해 child process의 PID를 내부적으로 저장한다.
+1. 우선 `fork()`에서 parent process와 child process 간에 공유할 자원들을 flag로 설정한다.
+2. 해당 flag들을 parameter로 포함시켜 `clone()`을 호출한다.
+3. `Clone()`에서는 `do_fork()`를 호출하고, 여기서 `copy_process()`를 호출하여 parent process address space의 복제를 통해 child process를 만든다.
+4. `Copy_process()`가 완료되면 `get_pid()`를 통해 child process의 PID를 내부적으로 저장한다.
 - 실제 코드: [<kernel/fork.c>](https://github.com/torvalds/linux/blob/master/kernel/fork.c)
 
-Fork()의 반환값은 process에 따라 다르다. 만약 parent process의 코드라면 fork()가 완료된 후 생성된 child process의 PID를 반환받는다. 만약 child process의 코드라면 0을 받환받는다. 만약 음수값이 반환된다면 fork()가 제대로 이루어지지 않았음을 의미한다.
+`Fork()`의 반환값은 process에 따라 다르다. 만약 parent process의 코드라면 `fork()`가 완료된 후 생성된 child process의 PID를 반환받는다. 만약 child process의 코드라면 0을 받환받는다. 만약 음수값이 반환된다면 `fork()`가 제대로 이루어지지 않았음을 의미한다.
 
-Fork()가 완료되면 parent와 child process는 그 다음 코드부터 동시에 수행하게 된다. 
+`Fork()`가 완료되면 parent와 child process는 그 다음 코드부터 동시에 수행하게 된다. 
 
 **예시)**
 <p align="center">
@@ -126,14 +126,24 @@ Fork()가 완료되면 parent와 child process는 그 다음 코드부터 동시
 
 </p> 
 
-**참고)** Fork(), Vfork(), Copy_on_Write
+**참고)** `Fork()`, `Vfork()`, Copy_on_Write
 
-이전의 fork(): Parent process의 자원까지 모두 복사하여 새로운 process 생성까지 시간이 오래 걸린다.
+이전의 `fork()`: Parent process의 자원까지 모두 복사하여 새로운 process 생성까지 시간이 오래 걸린다.
 
-Vfork(): Parent process와 child process는 자원을 공유한다. 자원을 복사하는 오버헤드는 감소하였으나 race condition을 막기 위해 부모가 블락되었고, 부모를 깨우기 위한 별도의 코드가 필요하다.
+`Vfork()`: Parent process와 child process는 자원을 공유한다. 자원을 복사하는 오버헤드는 감소하였으나 race condition을 막기 위해 부모가 블락되었고, 부모를 깨우기 위한 별도의 코드가 필요하다.
 
-현재의 fork(): 이전의 fork에 **copy_on_write** 방식을 도입하였다. Parent process와 child process는 자원을 공유하다가, 새로운 데이터가 쓰여질 경우에만 복사를 실시하여 각자의 자원을 가지도록 한다.
+현재의 `fork()`: 이전의 fork에 **copy_on_write** 방식을 도입하였다. Parent process와 child process는 자원을 공유하다가, 새로운 데이터가 쓰여질 경우에만 복사를 실시하여 각자의 자원을 가지도록 한다.
 <br></br>
 **<Exec()>**
 
-Exec()을 호출하면 현재 process의 실행을 다른 process에게 넘겨줄 수 있으므로, 이를 통해 child process를 수행한다. 만약 fork()가 수행된 후 child process의 코드에서 바로 exec()을 호출하면, parent process보다도 child process를 먼저 실행하여 자원 복사 오버헤드를 더욱 줄일 수 있다.
+`Exec()`을 호출하면 현재 process의 실행을 다른 process에게 넘겨줄 수 있으므로, 이를 통해 child process를 수행한다. 만약 `fork()`가 수행된 후 child process의 코드에서 바로 `exec()`을 호출하면, parent process보다도 child process를 먼저 실행하여 자원 복사 오버헤드를 더욱 줄일 수 있다.
+
+
+## Thread Creation
+
+Thread는 특정 process와의 자원 공유를 통해 concurrent programming이 가능하도록 지원한다.
+
+Microsoft Windows, Sum Solaris: 커널에서 thread 관련 함수를 명시적으로 사용한다.
+Linux: Thread는 process와 동일하게 생성, 실행, 종료되며, 커널에서 thread를 명시적으로 지원하지 않는다.
+
+Linux에서 thread는 process와 동일하게 취급되며, 단지 다른 process와 자원을 공유할 뿐이다. 따라서 생성 시 `fork()`에서 `clone()`이 수행되기 전에, `CLONE_FILES`(open files), `CLONE_FS`(file system information), `CLONE_SIGHAND`(signal handlers), `CLONE_VM`(address space) 등의 flag를 설정하여 전달한다. Parent process와 해당 자원들을 공유하는 child process가 곧 thread가 되며, 이때 parent process도 하나의 thread가 된다.
