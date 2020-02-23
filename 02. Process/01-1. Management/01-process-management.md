@@ -127,10 +127,12 @@ Fork()가 완료되면 parent와 child process는 그 다음 코드부터 동시
 </p> 
 
 **참고)** Fork(), Vfork(), Copy_on_Write
-- 이전의 fork(): Parent process의 자원까지 모두 복사하여 새로운 process 생성까지 시간이 오래 걸린다.
-- Vfork(): Parent process와 child process는 자원을 공유한다. 자원을 복사하는 오버헤드는 감소하였으나 race condition을 막기 위해 부모가 블락되었고, 부모를 깨우기 위한 별도의 코드가 필요하다.
-- 현재의 fork(): 이전의 fork에 **copy_on_write** 방식을 도입하였다. Parent process와 child process는 자원을 공유하다가, 새로운 데이터가 쓰여질 경우에만 복사를 실시하여 각자의 자원을 가지도록 한다.
 
+이전의 fork(): Parent process의 자원까지 모두 복사하여 새로운 process 생성까지 시간이 오래 걸린다.
+
+Vfork(): Parent process와 child process는 자원을 공유한다. 자원을 복사하는 오버헤드는 감소하였으나 race condition을 막기 위해 부모가 블락되었고, 부모를 깨우기 위한 별도의 코드가 필요하다.
+
+현재의 fork(): 이전의 fork에 **copy_on_write** 방식을 도입하였다. Parent process와 child process는 자원을 공유하다가, 새로운 데이터가 쓰여질 경우에만 복사를 실시하여 각자의 자원을 가지도록 한다.
 <br></br>
 **<Exec()>**
 
