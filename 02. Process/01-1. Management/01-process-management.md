@@ -6,6 +6,7 @@
 - [Process 생성](#process-creation)
 (Process 실행)
 - [Thread 생성](#thread-creation)
+(Thread 실행)
 - [Process 종료](#process-termination)
 
 ## The Process
@@ -144,6 +145,10 @@ Process의 생성과 실행은 `fork()`와 `exec()` system call로 수행된다.
 Thread는 특정 process와의 자원 공유를 통해 concurrent programming이 가능하도록 지원한다.
 
 Microsoft Windows, Sum Solaris: 커널에서 thread 관련 함수를 명시적으로 사용한다.
+
 Linux: Thread는 process와 동일하게 생성, 실행, 종료되며, 커널에서 thread를 명시적으로 지원하지 않는다.
 
 Linux에서 thread는 process와 동일하게 취급되며, 단지 다른 process와 자원을 공유할 뿐이다. 따라서 생성 시 `fork()`에서 `clone()`이 수행되기 전에, `CLONE_FILES`(open files), `CLONE_FS`(file system information), `CLONE_SIGHAND`(signal handlers), `CLONE_VM`(address space) 등의 flag를 설정하여 전달한다. Parent process와 해당 자원들을 공유하는 child process가 곧 thread가 되며, 이때 parent process도 하나의 thread가 된다.
+
+Thread의 실행 역시 process와 마찬가지로, `fork()` 완료 후 `exec()` 호출을 통해 수행된다.
+
