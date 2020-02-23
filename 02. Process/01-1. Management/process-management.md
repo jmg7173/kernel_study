@@ -17,7 +17,7 @@ Process는 생성되었을 때 life cycle이 시작된다.
 Linux에서 **Thread**는 특별한 종류의 process이다. (Thread 관련 자세한 내용은 [Thread 생성](#thread-creation) 항목으로)
 Process는 하나 이상의 thread로 이루어져 있으며, 커널은 process가 아닌 thread 단위로 스케줄링을 진행한다.
 
-참고) **Task**는 작업의 최소 단위를 일컫는 용어이다. 즉 task는 process를 지칭할 수도, thread를 지칭할 수도 있다. 
+**참고)** **Task**는 작업의 최소 단위를 일컫는 용어이다. 즉 task는 process를 지칭할 수도, thread를 지칭할 수도 있다. 
 
 ## Process Descriptor
 커널은 circular doubly linked list 구조인 `task list`에 process 세부 정보들을 저장한다. `Task list`의 각 원소들은 `struct task_struct` 타입의 구조체이며, 이들을 **Process Descriptor**라고 한다.
@@ -53,7 +53,7 @@ struct thread_info {
 
 ***PID***
 
-각 Process를 구분하기 위해 `pid_t` 타입의 `pid` 변수를 가진다. `pid_t` 타입은 process 번호를 저장한다는 의미를 가지며, `pid`는 integer 값으로 표현된다. `PID_MAX_DEFAULT`는 32,768로 정해져있다. (`32bit short int`)
+각 Process를 구분하기 위해 `pid_t` 타입의 `pid` 변수를 가진다. `pid_t` 타입은 process 번호를 저장한다는 의미를 가지며, `pid`는 양수의 integer 값으로 표현된다. `PID_MAX_DEFAULT`는 32,768로 정해져있다. (`32bit short int`)
 
 ***Process State***
 
@@ -102,3 +102,36 @@ list_for_each(list, &current->children) {
 ~~~
 
 같은 parent process의 직속 children을 sibling이라고 하며, process descriptor들이 circular doubly linked list 구조이기 때문에 `next`, `prev`와 같은 포인터로 쉽게 접근할 수 있다. `next_task(task)`, `prev_task(task)`와 같은 매크로가 구현되어 있다.
+
+## Process Creation
+Process의 생성과 실행은 fork()와 exec() system call로 수행된다. Fork()를 호출한 process는 parent process가 되고, 이로 인해 생성된 새로운 process는 child process가 된다. 그 뒤 exec()의 호출을 통해, 새로운 process의 이미지를 address space에 로드하여 child process를 수행한다.
+<br></br>
+**<Fork()>**
+
+`fork() -> clone() -> do_fork() -> copy_process(), get_pid()`
+1. 우선 fork()에서 parent process와 child process 간에 공유할 자원들을 flag로 설정한다.
+2. 해당 flag들을 parameter로 포함시켜 clone()을 호출한다.
+3. Clone()에서는 do_fork()를 호출하고, 여기서 copy_process()를 호출하여 parent process address space의 복제를 통해 child process를 만든다.
+4. Copy_process()가 완료되면 get_pid()를 통해 child process의 PID를 내부적으로 저장한다.
+- 실제 코드: [<kernel/fork.c>](https://github.com/torvalds/linux/blob/master/kernel/fork.c)
+
+Fork()의 반환값은 process에 따라 다르다. 만약 parent process의 코드라면 fork()가 완료된 후 생성된 child process의 PID를 반환받는다. 만약 child process의 코드라면 0을 받환받는다. 만약 음수값이 반환된다면 fork()가 제대로 이루어지지 않았음을 의미한다.
+
+Fork()가 완료되면 parent와 child process는 그 다음 코드부터 동시에 수행하게 된다. 
+
+**예시)**
+<p align="center">
+
+<img src = "https://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/fork-4.jpg">
+
+</p> 
+
+**참고)** Fork(), Vfork(), Copy_on_Write
+- 이전의 fork(): Parent process의 자원까지 모두 복사하여 새로운 process 생성까지 시간이 오래 걸린다.
+- Vfork(): Parent process와 child process는 자원을 공유한다. 자원을 복사하는 오버헤드는 감소하였으나 race condition을 막기 위해 부모가 블락되었고, 부모를 깨우기 위한 별도의 코드가 필요하다.
+- 현재의 fork(): 이전의 fork에 **copy_on_write** 방식을 도입하였다. Parent process와 child process는 자원을 공유하다가, 새로운 데이터가 쓰여질 경우에만 복사를 실시하여 각자의 자원을 가지도록 한다.
+
+<br></br>
+**<Exec()>**
+
+Exec()을 호출하면 현재 process의 실행을 다른 process에게 넘겨줄 수 있으므로, 이를 통해 child process를 수행한다. 만약 fork()가 수행된 후 child process의 코드에서 바로 exec()을 호출하면, parent process보다도 child process를 먼저 실행하여 자원 복사 오버헤드를 더욱 줄일 수 있다.
