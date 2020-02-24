@@ -11,6 +11,7 @@
 
 ## The Process
 **Process**의 정의: 실행중인 코드, 실행중인 프로그램
+
 Process의 의미: 실행중인 프로그램 + 관련된 자원들, 실행중인 코드의 결과물
 
 Process는 생성되었을 때 life cycle이 시작된다.
