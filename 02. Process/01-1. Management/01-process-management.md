@@ -27,6 +27,7 @@ Process는 하나 이상의 thread로 이루어져 있으며, 커널은 process�
 **<위치>**
 
 각 process는 커널 영역에서 사용할 스택인 process kernel stack을 가진다. 이 스택의 최상단 주소에 `struct thread_info` 구조체가 위치된다.
+- 장점: 별도의 레지스터를 사용하지 않고 현재 process의 process descriptor에 접근할 수 있다.
 
 ~~~
 struct thread_info {
@@ -113,7 +114,7 @@ Process의 생성과 실행은 `fork()`와 `exec()` system call로 수행된다.
 `fork() -> clone() -> do_fork() -> copy_process(), get_pid()`
 1. 우선 `fork()`에서 parent process와 child process 간에 공유할 자원들을 flag로 설정한다.
 2. 해당 flag들을 parameter로 포함시켜 `clone()`을 호출한다.
-3. `Clone()`에서는 `do_fork()`를 호출하고, 여기서 `copy_process()`를 호출하여 parent process address space의 복제를 통해 child process를 만든다.
+3. `Clone()`에서는 `do_fork()`를 호출하고, 여기서 `copy_process()`를 호출하여 parent process descriptor의 복제를 통해 child process descriptor를 초기화한다. 또한 process address space의 복제를 통해 child process space를 만든다.
 4. `Copy_process()`가 완료되면 `get_pid()`를 통해 child process의 PID를 내부적으로 저장한다.
 - 실제 코드: [<kernel/fork.c>](https://github.com/torvalds/linux/blob/master/kernel/fork.c)
 
@@ -172,3 +173,11 @@ Involuntarily: 특정 신호를 받거나 exception, error 등이 발생하여 �
 **<Wait()>**
 
 Parent process는 child process가 끝나기를 기다렸다가 관련된 모든 객체를 해제해야한다. Child process의 상태가 종료 상태로 바뀌면 child process kernel stack, `thread_info` 구조체, `task_struct` 구조체를 해제하고 child process descriptor를 제거하여 완전히 종료시킨다.
+
+<br></br>
+#### Image Reference
+[그림 1. Process Descriptor] https://img1.daumcdn.net/thumb/R800x0/?scode=mtistory2&fname=https%3A%2F%2Ft1.daumcdn.net%2Fcfile%2Ftistory%2F9986143359D9CE5D14
+
+[그림 2. Process State] https://wiki.kldp.org/pds/ProcessManagement/state_diagram.jpg
+
+[그림 3. Fork()] https://www.csl.mtu.edu/cs4411.ck/www/NOTES/process/fork/fork-4.jpg
