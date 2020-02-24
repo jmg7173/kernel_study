@@ -52,7 +52,7 @@ struct thread_info {
 
 </p>
 
-실제 구조체 코드: [<linux/sched.h>](https://github.com/torvalds/linux/blob/master/include/linux/sched.h)
+실제 구조체 코드: [<linux/sched.h>](https://github.com/torvalds/linux/blob/f8788d86ab28f61f7b46eb6be375f8a726783636/include/linux/sched.h#L629)
 
 ***PID***
 
@@ -116,7 +116,7 @@ Process의 생성과 실행은 `fork()`와 `exec()` system call로 수행된다.
 2. 해당 flag들을 parameter로 포함시켜 `clone()`을 호출한다.
 3. `Clone()`에서는 `do_fork()`를 호출하고, 여기서 `copy_process()`를 호출하여 parent process descriptor의 복제를 통해 child process descriptor를 초기화한다. 또한 process address space의 복제를 통해 child process space를 만든다.
 4. `Copy_process()`가 완료되면 `get_pid()`를 통해 child process의 PID를 내부적으로 저장한다.
-- 실제 코드: [<kernel/fork.c>](https://github.com/torvalds/linux/blob/master/kernel/fork.c)
+- 실제 코드: [<kernel/fork.c>](https://github.com/torvalds/linux/blob/f8788d86ab28f61f7b46eb6be375f8a726783636/kernel/fork.c#L2403)
 
 `Fork()`의 반환값은 process에 따라 다르다. 만약 parent process의 코드라면 `fork()`가 완료된 후 생성된 child process의 PID를 반환받는다. 만약 child process의 코드라면 0을 받환받는다. 만약 음수값이 반환된다면 `fork()`가 제대로 이루어지지 않았음을 의미한다.
 
@@ -168,7 +168,7 @@ Involuntarily: 특정 신호를 받거나 exception, error 등이 발생하여 �
 2. Parent process에 신호를 보내 종료함을 알린다. 만약 parent process가 먼저 종료되었다면  `forget_original_parent()`, `find_new_reaper()`를 호출하여 현재 thread 그룹에서 새로운 parent process를 찾는다. 적절한 parent process를 찾지 못하면 `init` process의 child process가 된다.
 3. 자신의 process 상태를 `EXIT_ZOMBIE`라는 종료 상태로 변경한다.
 4. `schedule()`을 호출하여 다른 process로 switch한다. (`Do_exit()`은 반환값이 없다.)
-- 실제 코드: [<kernel/exit.c>](https://github.com/torvalds/linux/blob/master/kernel/exit.c)
+- 실제 코드: [<kernel/exit.c>](https://github.com/torvalds/linux/blob/f8788d86ab28f61f7b46eb6be375f8a726783636/kernel/exit.c#L711)
 
 **<Wait()>**
 
