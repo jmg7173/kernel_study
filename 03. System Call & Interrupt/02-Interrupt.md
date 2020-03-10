@@ -59,7 +59,20 @@ Interrupt가 일어나면 즉시 실행되는 부분으로, interrupt 수신 확
 
 * Bottom Halves
 
-나중에 수행해도 되는 작업들로, Top halves를 수행하고 남은 Bottom halves는 다양한 방법으로 OS scheduler에 의해 scheduling되어 나중에 처리된다. Bottom havles로 나눠서 수행하려면 반드시 interrupt handler 수행 시 kernel이 re-scheduling하도록 등록해야한다. Bottom halves를 수행하는 종류 세 가지가 있으며, [여기](#bottom-halves)에서 다룬다.
+나중에 수행해도 되는 작업들로, Top halves를 수행하고 남은 Bottom halves는 다양한 방법으로 OS scheduler에 의해 scheduling되어 나중에 처리된다. Bottom havles로 나눠서 수행하려면 반드시 interrupt handler 수행 시 kernel이 re-scheduling하도록 등록해야한다. Bottom halves를 수행하는 종류 세 가지가 있으며, [여기](./03-Interrupt%20Bottom%20Halves.md)에서 다룬다.(나중에 추가 하겠음)
+
+간단하게 살펴보면 다음과 같다.
+* `softirq`:
+  * process specific kernel thread기반
+  * 정적으로 배정됨
+* `tasklet`(recommended)
+  * 주로 사용됨
+  * 한번에 여러 프로세서에서 실행 불가
+  * `tasklet`을 등록한 processor에서만 호출 가능.
+  * Sleep 불가. (interrupt context에서 수행됨)
+* `Work Queue`
+  * Sleep 가능. (context에서 수행됨)
+  * 다른 processor에서 처리 가능
 
 ## Interrupt Context
 OS kernel에서 context는 두 가지로 나뉜다.
@@ -134,6 +147,8 @@ Interrupt handler flag들은 서로 다른 bit를 사용하므로 `or` 연산을
 
 5번째 인자로 사용되는 `void *dev`는 여러 device들이 같은 IRQ를 사용하는 경우 어떤 device가 해당 IRQ를 사용하는지 interrupt handler 내에서 구별하기 위한 용도로 사용된다. `IRQF_SHARED`옵션이 활성화 되어 여러 device가 같은 interrupt handler를 사용하면 IDT의 해당 entry에 linked list 형태로 등록된다. 사용하지 않는 경우 `NULL`을 넘긴다.
 
+`void *dev`는 `IRQF_SHARED`가 활성화 되지 않은 경우에도 사용될 수 있다. 이 경우, device driver와 interrupt handler간 데이터 공유를 위해 사용된다.
+
 **주의할점**: `request_irq`는 등록 중 sleep이 가능하므로 interrupt context에서는 사용이 불가능하다.
 
 
@@ -151,13 +166,7 @@ Interrupt handler는 다음과 같은 형태를 가져야한다.
 static irqreturn_t intr_handler(int irq, void *dev)
 ```
 
-## Bottom halves
-Bottom halves를 처리하는 방법에는 세 가지가 있다.
-* `Softirq`
-* `Tasklet`
-* `Work Queue`
-
-
+Interrupt를 top과 bottom으로 나눠서 처리하고자 하면 반드시 bottom halves에 해당하는 부분을 Kernel에 예약해야한다.
 
 # Appendix
 
