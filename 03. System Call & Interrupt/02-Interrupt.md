@@ -23,15 +23,14 @@ Hardware interrupt는 Hardware가 processor에 전기적인 신호를 보내는 
 Hardware에서 생성한 전기적인 신호를 통해 생성된 interrupt는 interrupt controller를 거쳐 processor로 전달된다.
 
 <!-- 그림 삽입 -->
+![Hardware Interrupt](http://jake.dothome.co.kr/wp-content/uploads/2017/01/interrupt-1a.png)
 
 모든 Hardware는 interrupt line을 통해 interrupt controller와 interrupt line으로 연결되어있다. Interrupt controller는 multiplexer와 같은 역할을 하여 연결된 여러 interrupt line의 input을 processor와 연결된 하나의 line으로 전달한다. Interrupt controller로부터 interrupt가 전달되면 processor는 이를 감지해 현재 실행중인 작업을 잠시 중단하고 interrupt를 처리한다. 그리고 processor는 OS에 이를 알려 처리하도록 한다.
 
 Device 종류마다 고유한 interrupt 값을 가지며, OS는 이를 통해 interrupt를 구별해 이에 연결된 interrupt handler를 통해 interrupt를 처리한다. 이 값들은 interrupt requests(IRQs) line이라고 하며, 각 line에는 값이 할당되어있다. Timer는 0, Keyboard는 1 이런식으로 정적으로 할당 되어있는 경우도 있으나, PCI device의 경우에는 동적으로 값이 할당된다. 어찌됐든 Kernel은 각 interrupt value에 매칭되는 interrupt handler 및 device를 알고 있다.
 
 ### Software Interrupt
-
-### Exception
-Hardware interrupt는 비동기적인 interrupt고, exception의 경우는 동기적인 interrupt이다. 그 예로는 divide by zero와 같은 programming 오류, page fault와 같이 커널에서 처리해야할 비정상적인 조건들이 있다. 대부분 Hardware interrupt와 비슷한 방식으로 처리한다.
+Hardware interrupt는 비동기적인 interrupt고, system calld이나 exception의 경우는 동기적인 interrupt이다. Exception의 예로는 divide by zero와 같은 programming 오류, page fault와 같이 커널에서 처리해야할 비정상적인 조건들이 있다. 대부분 Hardware interrupt와 비슷한 방식으로 처리한다. 다만, system call을 호출하는 `int 0x80`과 같이 assembly code를 통해 기계어 명령을 통해 실행된다.
 
 ## Interrupt Handler
 Kernel에서 Hardware등에 대한 interrupt를 처리하는 것을 interrupt handler 또는 ISR(Interrupt Service Routine)라고 한다. Interrupt를 생성하는 장치는 각각 연결된 interrupt handler가 있으며, 보통 Device Driver에 포함되어있다. Device driver는 다른 장에서 다루며, 간략하게 말하면 device를 다루는 kernel code정도로 이해하면 된다.
