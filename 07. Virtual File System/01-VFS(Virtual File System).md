@@ -4,7 +4,7 @@
 
 [TOC]
 
-## VFS(가상 파일 시스템)란?
+# VFS(가상 파일 시스템)란?
 
 > *"가상(virtual)이란 객체 지향에서 말하는 추상화와 유사한 개념임. 특정 모듈의 상세한 기능을 숨기고 인터페이스 용으로 선언된 특정 함수로만 다른 계층과 인터페이싱하는 방법.*"
 
@@ -21,7 +21,7 @@ VFS는 open(), write(), read() 함수를 user application에서 호출하면 sys
 
 
 
-#### VFS가 지원하는 파일 시스템
+### VFS가 지원하는 파일 시스템
 
 - **디스크 기반 파일 시스템**
 
@@ -39,7 +39,7 @@ VFS는 open(), write(), read() 함수를 user application에서 호출하면 sys
 
 
 
-#### VFS 를 쓰는 이유
+### VFS 를 쓰는 이유
 
 1. **새로운 파일시스템을 적용해도 유저 어플리케이션나 디바이스 드라이버 코드는 호환성을 유지**하며 개발할 수 있다. 가상 파일시스템에서 **추상화 인터페이스**를 지원하기 때문.
 
@@ -49,7 +49,7 @@ VFS는 open(), write(), read() 함수를 user application에서 호출하면 sys
 
 ------
 
-## VFS 자료구조(datastructure)
+# VFS 자료구조(datastructure)
 
 파일시스템별 속성과 디렉토리 그리고 메타데이터를 관리하는 구조체를 **파일시스템 공통 파일 모델**이라함.
 
@@ -95,7 +95,7 @@ VFS는 open(), write(), read() 함수를 user application에서 호출하면 sys
 
 ------
 
-### 슈퍼블록 객체(Superblock object)
+## 슈퍼블록 객체(Superblock object)
 
 *Superblock object는 파일 시스템에 대한 메타 정보와 각 파일시스템 별  superblock 함수 오퍼레이션으로 구성됨. 구체적으로 파일시스템 마운트 정보와 실행 플래그를 저장한다.*
 
@@ -105,7 +105,7 @@ VFS는 open(), write(), read() 함수를 user application에서 호출하면 sys
 
 
 
-#### - struct super_block 구조체 분석
+### - struct super_block 구조체 분석
 
 다음 구조체를 분석하여 슈퍼블락이 어떤 파일시스템 정보를 저장하고 있는지 알아보자.
 
@@ -180,7 +180,7 @@ proc 파일시스템은 램에서만 시스템 정보를 출력하는 역할을 
 
 
 
-#### - 슈퍼블록 함수 오퍼레이션
+### - 슈퍼블록 함수 오퍼레이션
 
 https://elixir.bootlin.com/linux/v4.14.70/source/fs/inode.c
 
@@ -256,11 +256,11 @@ https://elixir.bootlin.com/linux/v4.14.70/source/include/linux/fs.h
 
 ------
 
-### 아이노드 객체(inode object)
+## 아이노드 객체(inode object)
 
 *inode object는 각 파일 그 자체를 관리하고 표현하는 모든 속성과 동작 정보를 저장하고 있다.*
 
-#### - struct inode 구조체 분석
+### - struct inode 구조체 분석
 
 아이노드에 대한 세부속성을 알아보자.
 
@@ -426,7 +426,7 @@ i_mode 필드를 사용하는, 파일 오픈시 호출되는 may_open() 함수�
 
 
 
-#### - 아이노드 함수 오퍼레이션
+### - 아이노드 함수 오퍼레이션
 
 [struct inode_operations](https://github.com/torvalds/linux/blob/94f2630b18975bb56eee5d1a36371db967643479/include/linux/fs.h#L1863) 아이노드 함수 오퍼레이션을 살펴보자.
 
@@ -575,7 +575,7 @@ int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
 
 
 
-#### - inode 함수 오퍼레이션에서 디렉토리 파일 처리방식
+### - inode 함수 오퍼레이션에서 디렉토리 파일 처리방식
 
 먼저 "/home/pi/sample.txt" 라는 파일이 있다.
 
@@ -653,7 +653,7 @@ A와 B를 보면 A는 대부분 inode 함수 오퍼레이션으로 함수가 지
 
 ------
 
-### 덴트리 객체(Dentry object)
+## 덴트리 객체(Dentry object)
 
 *dentry object는 해당 파일에 대한 특정 디렉토리를 관리하는 속성 정보를 표현함.*
 
@@ -683,7 +683,7 @@ User space에서 디렉토리 패스 정보가 포함된 파일 정보를 인자
 
 
 
-#### - struct dentry 구조체 분석
+### - struct dentry 구조체 분석
 
 [struct dentry](https://github.com/torvalds/linux/blob/7ada90eb9c7ae4a8eb066f8e9b4d80122f0363db/include/linux/dcache.h#L89)
 
@@ -744,7 +744,7 @@ dentry 구조체 필드중 중요한 속성을 몇가지 알아보자.
 
 ------
 
-### 파일 객체(file object)
+## 파일 객체(file object)
 
 *유저는 파일을 생성하고 읽고 쓰기 위한 용도로 쓴다. 이 때 파일 동작에 대한 상세한 규칙과 속성은 파일 객체에서 확인할 수 있다.*
 
@@ -756,7 +756,7 @@ dentry 구조체 필드중 중요한 속성을 몇가지 알아보자.
 
 
 
-#### - struct file 구조체 분석
+### - struct file 구조체 분석
 
 [struct file](https://github.com/torvalds/linux/blob/7ada90eb9c7ae4a8eb066f8e9b4d80122f0363db/include/linux/fs.h#L935)
 
@@ -823,7 +823,7 @@ FMODE_WRITE_IOCTL 	ioctl 시스템 콜로 파일이 오픈된 상태
 
 
 
-#### - 파일객체 함수 오퍼레이션
+### - 파일객체 함수 오퍼레이션
 
 VFS에서 파일시스템 별로 파일을 열고 쓰고 읽는 함수 포인터 테이블을 지원하는데, 이를 파일 오퍼레이션 이라고 하며 다음 헤더파일에 저장 되어있다.
 
@@ -882,7 +882,7 @@ struct file_operations {
 
 ## VFS 시스템 콜(system call)
 
-### open()
+## open()
 
 파일 객체를 열때 세부 동작임.
 
@@ -952,7 +952,7 @@ fd_install() 함수를 호출하여 파일 디스크립터를 프로세스 테�
 
 
 
-### read()
+## read()
 
 user space에서 read()함수를 호출했을때 파일 시스템 별로 관리하는 파일 객체에서 파일 오퍼레이션을 수행하는 방식이다.
 
@@ -1048,19 +1048,19 @@ struct file 구조체 멤버중 f_op에 접근해서 read란 포인터가 가리
 
 
 
-### write()
+## write()
 
 ![write1](./figure/write1.jpg)
 
 ​					그림 . fdget_pos() 함수를 호출하여 프로세스의 파일 디스크립터 테이블에 접근하는 실행 흐름.
 
-### close()
+## close()
 
 
 
 ------
 
-## 프로세스가 파일 객체 자료구조를 관리하는 방법
+# 프로세스가 파일 객체 자료구조를 관리하는 방법
 
 파일을 오픈하면 프로세스가 파일 디스크립터와 파일 객체를 관리한다 라고 했다. 
 
@@ -1142,7 +1142,7 @@ close() 함수를 **호출**해서 파일 디스크립터를 **해제**한 후 �
 
 
 
-## References
+# References
 
 http://www.bricktou.com/fs/open_vfs_truncate_en.html
 
