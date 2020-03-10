@@ -111,7 +111,7 @@ local_irq_restore(flags);
 local_irq_enable();
 ```
 
-`local_irq_*` function들은 [`include/linux/irqflags.h L79-L151`](https://github.com/torvalds/linux/blob/master/include/linux/irqflags.h#L79-L149)에 정의되어있으며, `local_irq_*` \rightarrow `raw_local_irq_*` \rightarrow `arch_local_irq_*` 순으로 wrapping되어있다. 그리고 아키텍쳐마다는 다르나, x86아키텍쳐의 경우 `arch_local_irq_*`은 `native_local_irq_*`을 호출하고 있다.
+`local_irq_*` function들은 [`include/linux/irqflags.h L79-L151`](https://github.com/torvalds/linux/blob/master/include/linux/irqflags.h#L79-L149)에 정의되어있으며, `local_irq_*` &rarr;  `raw_local_irq_*` &rarr; `arch_local_irq_*` 순으로 wrapping되어있다. 그리고 아키텍쳐마다는 다르나, x86아키텍쳐의 경우 `arch_local_irq_*`은 `native_local_irq_*`을 호출하고 있다.
 
 `irq_disable`의 경우 assembly code로 `cli`를 호출하며, `irq_enable`은 assembly code로 `sti`를 호출한다.
 관련 코드는 [`arch/x86/include/asm/irqflags.h L19-L95`](https://github.com/torvalds/linux/blob/master/arch/x86/include/asm/irqflags.h#L19-L95)에 정의되어있다.
