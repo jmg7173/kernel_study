@@ -12,9 +12,9 @@ VFS는 파일시스템 위에 있는 계층으로 파일시스템 계층에 접�
 
 파일시스템 인터페이스를 user application에 제공하고, 모든 파일시스템은 가상 파일시스템을 통해 접근 가능하다. 유저 입장에서는 open(), write(), read() 함수와 같은 리눅스 표준 함수를 써서 파일에 접근하므로  리눅스 커널에 파일 시스템이 하나인 것처럼 느낄 수 있다.
 
-<img src="C:\Users\USER\Desktop\연구\kernel study\figure\그림1.png" alt="그림1" style="zoom: 50%;" />
+<img src="./figure/그림1.png" style="zoom: 33%;" />
 
-​												그림1 : user-level과 kernel-level 사이에서 파일 시스템 계층.
+그림1 : user-level과 kernel-level 사이에서 파일 시스템 계층.
 
 [그림 1]에서 system call 수행 과정을 살펴보자.
 VFS는 open(), write(), read() 함수를 user application에서 호출하면 system call실행을 통해 파일 시스템에 접근할 수 있는 <u>소프트웨어 계층</u>임.
@@ -888,11 +888,11 @@ struct file_operations {
 
 User space에서 open()함수를 실행하면 kernel space에서 다음과 같은 함수 흐름을 확인할 수 있다.
 
-![open1](C:\Users\USER\Desktop\연구\kernel study\figure\open1.png)
+![open1](./figure/open1.png)
 
 user space에서 **open()** 함수를 호출하면 system call을 발생시켜 실행 흐름이 kernel space로 바뀜. 이후 system call handler 함수인 **sys_open()** 함수가 실행되고 ext4 파일시스템의 파일 오픈함수인 **ext4_file_open()**이 호출된다.
 
-<img src="C:\Users\USER\Desktop\연구\kernel study\figure\open2.jpg" alt="open2"  />
+<img src="./figure/open2.jpg" alt="open2"  />
 
 파일 open시 실행 흐름은 3단계로 분류할 수 있다.
 
@@ -956,7 +956,7 @@ fd_install() 함수를 호출하여 파일 디스크립터를 프로세스 테�
 
 user space에서 read()함수를 호출했을때 파일 시스템 별로 관리하는 파일 객체에서 파일 오퍼레이션을 수행하는 방식이다.
 
-![read1](C:\Users\USER\Desktop\연구\kernel study\figure\read1.jpg)
+![read1](./figure/read1.jpg)
 
 user space에서 **read()** 함수를 호출하면 system call을 발생시켜 실행 흐름이 kernel space로 바뀜. 이후 system call handler 함수인 **sys_read()** 함수가 실행되고 ext4 파일시스템의 파일 오픈함수인 **ext4_file_read()**이 호출된다.
 
@@ -1050,7 +1050,7 @@ struct file 구조체 멤버중 f_op에 접근해서 read란 포인터가 가리
 
 ### write()
 
-![write1](C:\Users\USER\Desktop\연구\kernel study\figure\write1.jpg)
+![write1](./figure/write1.jpg)
 
 ​					그림 . fdget_pos() 함수를 호출하여 프로세스의 파일 디스크립터 테이블에 접근하는 실행 흐름.
 
@@ -1106,7 +1106,7 @@ user application은 **fd**라는 정수형 인자로 **파일의 상세 내용�
 
 **1 단계** : 파일 객체 및 파일 디스크립터 생성 후 프로세스 파일 디스크립터 테이블에 등록
 
-![process1](C:\Users\USER\Desktop\연구\kernel study\figure\process1.jpg)
+![process1](./figure/process1.jpg)
 
 각 프로세스마다 파일 객체를 관리하는 **파일 디스크립터 테이블**이 있다.
 위 그림에서 파일 디스크립터가 3번인데, kernel space에서는 파일 디스크립터 배열 3번에 해당하는 파일 객체로 파일을 관리하는 것임.
@@ -1115,7 +1115,7 @@ user application은 **fd**라는 정수형 인자로 **파일의 상세 내용�
 
 **2 단계** : 프로세스 파일 디스크립터 테이블에서 파일 디스크립터와 파일 객체 로딩
 
-![process2](C:\Users\USER\Desktop\연구\kernel study\figure\process2.jpg)
+![process2](./figure/process2.jpg)
 
 User space에서 3번 파일 디스크립터로 파일을 읽고 쓰고 파일 포인터를 설정함.
 이때, kernel space에서는 테이블의 3번 배열에 해당하는 파일객체(0xBE59EA20)로 파일을 읽고 쓰고 동작을 관리함.
@@ -1124,7 +1124,7 @@ User space에서 3번 파일 디스크립터로 파일을 읽고 쓰고 파일 �
 
 **3 단계** : 프로세스 파일 디스크립터 테이블에서 파일 디스크립터와 파일 객체 삭제
 
-![process3](C:\Users\USER\Desktop\연구\kernel study\figure\process3.jpg)
+![process3](./figure/process3.jpg)
 
 파일을 닫을 때 user space에서 close() 함수를 호출하는데 이 때 정수형 파일 디스크립터를 인자로 전달함.
 
@@ -1142,13 +1142,13 @@ close() 함수를 **호출**해서 파일 디스크립터를 **해제**한 후 �
 
 
 
+## References
 
+http://www.bricktou.com/fs/open_vfs_truncate_en.html
 
+http://rousalome.egloos.com/9995793
 
+https://dev-ahn.tistory.com/97
 
-
-
-
-
-
+https://www.kernel.org/doc/html/latest/filesystems/vfs.html
 
