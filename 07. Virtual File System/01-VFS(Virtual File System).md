@@ -2,7 +2,12 @@
 
 ------
 
-[TOC]
+## 목차 
+- [Chapter 7. VFS(Virtual File System)](#Chapter-7.-VFS(Virtual-File-System))
+- [VFS(가상-파일-시스템)란?](#VFS(가상-파일-시스템)란?)
+- [VFS가 지원하는 파일 시스템](#VFS가-지원하는-파일-시스템)
+- [VFS를 쓰는 이유](#VFS를-쓰는-이유)
+---
 
 # VFS(가상 파일 시스템)란?
 
@@ -12,7 +17,7 @@ VFS는 파일시스템 위에 있는 계층으로 파일시스템 계층에 접�
 
 파일시스템 인터페이스를 user application에 제공하고, 모든 파일시스템은 가상 파일시스템을 통해 접근 가능하다. 유저 입장에서는 open(), write(), read() 함수와 같은 리눅스 표준 함수를 써서 파일에 접근하므로  리눅스 커널에 파일 시스템이 하나인 것처럼 느낄 수 있다.
 
-<img src="./figure/그림1.png" style="zoom: 33%;" />
+<img src="./figure/그림1.png" width="656px" height="586px" />
 
 그림1 : user-level과 kernel-level 사이에서 파일 시스템 계층.
 
