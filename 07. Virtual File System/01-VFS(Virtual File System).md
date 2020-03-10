@@ -3,10 +3,32 @@
 ------
 
 ## 목차 
-- [Chapter 7. VFS(Virtual File System)](#Chapter-7.-VFS(Virtual-File-System))
-- [VFS(가상-파일-시스템)란?](#VFS(가상-파일-시스템)란?)
-- [VFS가 지원하는 파일 시스템](#VFS가-지원하는-파일-시스템)
-- [VFS를 쓰는 이유](#VFS를-쓰는-이유)
+[Chapter 7. VFS(Virtual File System)](#Chapter-7.-VFS(Virtual-File-System))
+
+[VFS 자료구조(data structure)](#VFS-자료구조(datastructure))
+
+	 [슈퍼블록 객체(Superblock object)](#슈퍼블록-객체(Superblock-object))
+	
+	 [아이노드 객체(inode object)](#아이노드-객체(inode-object))
+	
+	 [덴트리 객체(Dentry object)](#덴트리-객체(Dentry-object))
+	
+	 [파일 객체(file object)](#파일-객체(file-object))
+	
+[VFS 시스템 콜(system call)](#VFS-시스템-콜(system-call)
+
+	 [open()](#open())
+	
+	 [read()](#read())
+	
+	 [write()](#write())
+	
+	 [close()](#close())
+	
+[프로세스가 파일 객체 자료구조를 관리하는 방법](#프로세스가-파일-객체-자료구조를-관리하는-방법)
+
+[References](#References)
+	
 ---
 
 # VFS(가상 파일 시스템)란?
